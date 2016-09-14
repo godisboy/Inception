@@ -147,10 +147,10 @@ int main()
     int T_ = 300; // steps
     int N_ = 64; //samples
     int K_ = 8;   // output units
-
+    float L2norm = 0.00002;
     float lr = 0.0016;
     int batch_count =0;
-    double batch_size = 16.0;
+    float batch_size = 16.0;
     //float best_accury = 0.0;  //save the best modle
     float momentum = 0.9;
 
@@ -584,7 +584,7 @@ int main()
                     }
                     z_[f] = z_o[t][f] + bias_z[f];// output value of every step
 		    //cout << f << " value of ip before softmax: " << *ip << endl; //测试得softmax的输入存在问题，output unit 0的输入值很大
-                    //cout << f << " output units: " << "bias: " << bias_z[f] <<"z_o " << z_[f] << endl; //那么问题是 bias_z的值过大 导致输出神经元0的值过大
+                    //cout << f << " output units: " <<" z_o = " << z_[f] << endl; //那么问题是 bias_z的值过大 导致输出神经元0的值过大
 		    //ip++;                                                                //同时注意到，其他hidden to outputs的bias为0；
                     //at time step computesoftmax
 
@@ -655,7 +655,6 @@ int main()
                     {
                         gradient_O_h[t][k] = softmax_o[t][k];
                     }
-
 
 
                                                                // cout << k << " output units " << " gradient_O_h: " << gradient_O_h[t][k] << endl;
@@ -904,19 +903,19 @@ int main()
                     // cout << t << "steps:" << " " <<endl ;
 
 
-                        c_weight_i[d] = c_weight_i[d] + didc[d];
-		        c_weight_f[d] = c_weight_f[d] + dfdc[d];
-		        c_weight_o[d] = c_weight_o[d] + dodc[d];
+                        c_weight_i[d] += didc[d] - L2norm * c_weight_i[d];
+                        c_weight_f[d] += dfdc[d] - L2norm * c_weight_f[d];
+                        c_weight_o[d] += dodc[d] - L2norm * c_weight_o[d];
 
                         //if(n == 62) cout << "n  in update "  << endl;
                         // if(n == 63) cout << "n  in update  the problem"  << endl;
 
                         for(int i = 0; i < I_; ++i)
                         {
-                              weight_i[d][i] = weight_i[d][i] + didx[d][i];
-                              weight_f[d][i] = weight_f[d][i] + dfdx[d][i];
-                              weight_g[d][i] = weight_g[d][i] + dgdx[d][i];
-                              weight_o[d][i] = weight_o[d][i] + dodx[d][i];
+                              weight_i[d][i] += didx[d][i] - L2norm * weight_i[d][i];
+                              weight_f[d][i] += dfdx[d][i] - L2norm * weight_f[d][i];
+                              weight_g[d][i] += dgdx[d][i] - L2norm * weight_g[d][i];
+                              weight_o[d][i] += dodx[d][i] - L2norm * weight_o[d][i];
 
 			      //cout << "didx: " << didx[d][i] << endl;
                         }
@@ -929,10 +928,10 @@ int main()
 
                             for(int h = 0; h<H_; ++h)
                             {
-                                h_weight_i[d][h] = h_weight_i[d][h] + didh[d][h];
-                                h_weight_f[d][h] = h_weight_f[d][h] + dfdh[d][h];
-                                h_weight_g[d][h] = h_weight_g[d][h] + dgdh[d][h];
-                                h_weight_o[d][h] = h_weight_o[d][h] + dodh[d][h];
+                                h_weight_i[d][h] += didh[d][h] - L2norm * h_weight_i[d][h];
+                                h_weight_f[d][h] += dfdh[d][h] - L2norm * h_weight_f[d][h];
+                                h_weight_g[d][h] += dgdh[d][h] - L2norm * h_weight_g[d][h];
+                                h_weight_o[d][h] += dodh[d][h] - L2norm * h_weight_o[d][h];
 
                                 //cout << "h_weight_i:" << " " << h_weight_i[d][h] << " "
                                 //<< "h_weight_f:" << " " << h_weight_f[d][h] << " "
@@ -945,7 +944,7 @@ int main()
                         //hidden to output weights update error
                         for(int k = 0; k<K_; ++k)
                         {
-                            h_z_weight[k][d] = h_z_weight[k][d] + dzdh[k][d];   // update equation is one of the error
+                            h_z_weight[k][d] += dzdh[k][d] - L2norm * h_z_weight[k][d];   // update equation is one of the error
                             //cout << "h_z_weight:" << " " << h_z_weight[k][d] << endl;
                         }
 
@@ -1161,6 +1160,7 @@ int main()
                  }
 
                     cout << "test_accuary :" << test_accuary << endl;
+		    
 
                 }
 
@@ -1238,7 +1238,7 @@ int main()
                  }
 
 
-
+                 
                  for(int d = 0; d < H_; ++d)
                  {
 
@@ -1275,7 +1275,7 @@ int main()
                      }
 
                  }
-
+                 
 
              }
                 //clear end
